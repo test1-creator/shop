@@ -2,10 +2,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shop/providers/cart.dart';
+import 'package:shop/providers/products.dart';
 import 'package:shop/widgets/app_drawer.dart';
 import 'package:shop/widgets/badge.dart';
 import 'package:shop/widgets/products_gridView.dart';
-
+import 'package:http/http.dart' as http;
 import 'cart_screen.dart';
 
 enum FilterOptions {
@@ -20,6 +21,24 @@ class ProductScreen extends StatefulWidget {
 
 class _ProductScreenState extends State<ProductScreen> {
   var _showFavoritesOnly = false;
+  var _isInit = true;
+  var _isLoading = false;
+
+  @override
+  void didChangeDependencies() {
+    if(_isInit) {
+      setState(() {
+        _isLoading = true;
+      });
+      Provider.of<Products>(context).fetchAndSetProducts().then((_) {
+        setState(() {
+          _isLoading = false;
+        });
+      });
+    }
+    _isInit = false;
+    super.didChangeDependencies();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +85,7 @@ class _ProductScreenState extends State<ProductScreen> {
           ),
         ],
       ),
-      body: ProductsGridView(_showFavoritesOnly),
+      body: _isLoading ? Center(child: CircularProgressIndicator(),) : ProductsGridView(_showFavoritesOnly),
       drawer: AppDrawer(),
     );
   }
